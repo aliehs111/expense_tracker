@@ -1,9 +1,10 @@
 import datetime
-
+import csv
+import os
 
 expenses = []
 categories = ("housing", "household", "utilities", "food", "medical", "entertainment", "investment", "education", "pets", "car", "car maintenance", "gas")
-
+monthly_budgets = {}
 #check if date is correct format
 def valid_date(date_str):
    try:
@@ -36,21 +37,21 @@ def add_expense(date, category, amount, description):
    print("Expense added to tracker")
 
 # test valid and invalid entries
-add_expense("2025-03-06", "food", 15.78, "pizza")
-print(expenses)
+# add_expense("2025-03-06", "food", 15.78, "pizza")
+# print(expenses)
 
-add_expense("2025-03-06", "plant", 14.36, "pothos")
-print(expenses)
+# add_expense("2025-03-06", "plant", 14.36, "pothos")
+# print(expenses)
 
-add_expense("03-05-25", "car maintenance", 500.25, "tires")
-print(expenses)
+# add_expense("03-05-25", "car maintenance", 500.25, "tires")
+# print(expenses)
 
-add_expense("2025-03-03", "utilities", 700.00, "electric bill")
-print(expenses)
+# add_expense("2025-03-03", "utilities", 700.00, "electric bill")
+# print(expenses)
 
 
 
-view expenses function
+# view expenses function
 def view_expenses():
   if not expenses:
     print("No expenses to display")
@@ -65,10 +66,10 @@ def view_expenses():
       print("-" * 30)
 
 #call function
-view_expenses()
+# view_expenses()
 
 # budget management (create budget function)
-monthly_budgets = {}
+
 
 def set_monthly_budget(category, amount):
    if category not in categories:
@@ -97,7 +98,7 @@ def prompt_add_expense():
     return
   description = input("Enter description: ")
   add_expense(date, category, amount, description)
-prompt_add_expense()     
+   
 
 
 def prompt_set_monthly_budget():
@@ -143,8 +144,7 @@ def track_monthly_budget():
 
 
 #saving and reloading using the csv module
-import csv
-import datetime
+
 # for the test
 today = datetime.datetime.now().strftime("%Y-%m-%d")
 filename = f"testexpenses_{today}.csv"
@@ -158,7 +158,7 @@ def save_expenses(filename, expenses):
           writer.writerow(expense)
    print(f"Expenses have been saved to {filename}")
 
-save_expenses(filename, expenses)
+# save_expenses(filename, expenses)
 
 #function to load the budget
 def load_expenses(filename):
@@ -170,7 +170,15 @@ def load_expenses(filename):
            loaded_expenses.append(row)
     print(f"Expenses loaded from {filename}")
     return loaded_expenses
-load_expenses(filename)
+# load_expenses(filename)
+
+#check if file exists and load that data
+today= datetime.datetime.now().strftime("%Y-%m-%d")
+filename=f"testexpenses_{today}.csv"
+if os.path.exists(filename):
+    expenses = load_expenses(filename)
+else:
+    print(f"There are no saved expenses found in {filename}. Please choose from main menu to add expenses")
 
 #main menu
 def main_menu():
@@ -201,3 +209,5 @@ def main_menu():
         print("Invalid Selection. Please choose from numbers 1-6.")
 main_menu()
 
+if __name__=="__main__":
+   main_menu()
