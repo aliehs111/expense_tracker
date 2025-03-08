@@ -1,6 +1,7 @@
 import datetime
 import csv
 import os
+print("Current working directory:", os.getcwd())
 
 expenses = []
 categories = ("housing", "household", "utilities", "food", "medical", "entertainment", "investment", "education", "pets", "car", "car maintenance", "gas")
@@ -204,10 +205,12 @@ def main_menu():
     elif choice == "5":
         track_monthly_budget()
     elif choice == "6":
+        save_expenses(filename, expenses)
+        print("Your data is saved and this program will exit now.")
         exit()
     else:
         print("Invalid Selection. Please choose from numbers 1-6.")
-main_menu()
+
 
 if __name__=="__main__":
    main_menu()
