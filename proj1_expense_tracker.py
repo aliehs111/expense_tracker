@@ -121,28 +121,38 @@ def view_monthly_budget():
 import datetime
 
 def track_monthly_budget():
-
-  #get curent month
+    # Get current month in "YYYY-MM" format
     current_month = datetime.datetime.now().strftime("%Y-%m")
+    
+    # Collect categories from expenses for the current month
     expense_categories = {expense["category"] for expense in expenses if expense["date"].startswith(current_month)}
+    
+    # Combine categories from monthly_budgets and the expenses to get all categories
     all_categories = set(monthly_budgets.keys()) | expense_categories
-
-    spent = {category: 0.0 for category in monthly_budgets}
-   #add the expenses that occured in current month
+    
+    # Initialize a dictionary to accumulate spent amounts for each category
+    spent = {category: 0.0 for category in all_categories}
+    
+    # Sum expenses for the current month by category
     for expense in expenses:
         if expense["date"].startswith(current_month):
             category = expense["category"]
-            spent[category] = expense["amount"]
-
-    header = f"{'Category':<20}{'Spent':<15}{'Budget':<15}{'Percentage':<15}"
-    print(header)
-    print("-" * len(header))
-
-    for category, budget in monthly_budgets.items():
-       amount_spent = spent.get(category, 0.0)
-       percentage = (amount_spent / budget * 100) if budget > 0 else 0
-       print(f"{category:<20}{amount_spent:<15.2f}{budget:<15.2f}{percentage:<15.2f}")
-
+            spent[category] += expense["amount"]
+    
+    # Loop through each category and calculate percentage and status
+    for category in sorted(all_categories):
+        budget = monthly_budgets.get(category, 0.0)
+        amount_spent = spent.get(category, 0.0)
+        percentage = (amount_spent / budget * 100) if budget > 0 else 0
+        if budget > 0:
+            difference = budget - amount_spent
+            if difference < 0:
+                status = f"Exceeded by ${abs(difference):.2f}"
+            else:
+                status = f"Remaining: ${difference:.2f}"
+        else:
+            status = "No budget set"
+        print(f"{category:<20}{amount_spent:<15.2f}{budget:<15.2f}{percentage:<15.2f}{status:<30}")
 
 #saving and reloading using the csv module
 
