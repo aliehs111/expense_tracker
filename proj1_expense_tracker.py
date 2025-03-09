@@ -138,7 +138,9 @@ def track_monthly_budget():
         if expense["date"].startswith(current_month):
             category = expense["category"]
             spent[category] += expense["amount"]
-    
+    header = f"{'Category':<20}{'Spent':<15}{'Budget':<15}{'Percentage':<15}{'Status':<30}"
+    print(header)
+    print("-" * len(header))
     # Loop through each category and calculate percentage and status
     for category in sorted(all_categories):
         budget = monthly_budgets.get(category, 0.0)
@@ -154,43 +156,54 @@ def track_monthly_budget():
             status = "No budget set"
         print(f"{category:<20}{amount_spent:<15.2f}{budget:<15.2f}{percentage:<15.2f}{status:<30}")
 
-#saving and reloading using the csv module
+# --------- Expense Saving and Loading Functions ---------
 
-# for the test
+# Set filenames using today's date
 today = datetime.datetime.now().strftime("%Y-%m-%d")
-filename = f"testexpenses_{today}.csv"
-#function to save data to csv file
+expenses_filename = f"testexpenses.csv"
+budgets_filename = f"testbudgets.csv"
+
 def save_expenses(filename, expenses):
-   fieldnames = ["date", "category", "amount", "description"]
-   with open(filename, mode="w", newline="") as csvfile:
-      writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-      writer.writeheader() #write the header row
-      for expense in expenses:
-          writer.writerow(expense)
-   print(f"Expenses have been saved to {filename}")
+    fieldnames = ["date", "category", "amount", "description"]
+    with open(filename, mode="w", newline="") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()  # Write the header row
+        for expense in expenses:
+            writer.writerow(expense)
+    print(f"Expenses have been saved to {filename}")
 
-# save_expenses(filename, expenses)
-
-#function to load the budget
 def load_expenses(filename):
     loaded_expenses = []
     with open(filename, mode="r", newline="") as csvfile:
-       reader = csv.DictReader(csvfile)
-       for row in reader:
-           row["amount"] = float(row["amount"])
-           loaded_expenses.append(row)
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            row["amount"] = float(row["amount"])
+            loaded_expenses.append(row)
     print(f"Expenses loaded from {filename}")
     return loaded_expenses
-# load_expenses(filename)
 
-#check if file exists and load that data
-today= datetime.datetime.now().strftime("%Y-%m-%d")
-filename=f"testexpenses_{today}.csv"
-if os.path.exists(filename):
-    expenses = load_expenses(filename)
-else:
-    print(f"There are no saved expenses found in {filename}. Please choose from main menu to add expenses")
+# --------- Budget Saving and Loading Functions ---------
 
+def save_budgets(filename, monthly_budgets):
+    fieldnames = ["category", "budget"]
+    with open(filename, mode="w", newline="") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for category, budget in monthly_budgets.items():
+            writer.writerow({"category": category, "budget": budget})
+    print(f"Budgets have been saved to {filename}")
+
+def load_budgets(filename):
+    loaded_budgets = {}
+    if not os.path.exists(filename):
+        print(f"No saved budgets found in {filename}.")
+        return loaded_budgets
+    with open(filename, mode="r", newline="") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            loaded_budgets[row["category"]] = float(row["budget"])
+    print(f"Budgets loaded from {filename}")
+    return loaded_budgets
 #main menu
 def main_menu():
 
@@ -215,7 +228,8 @@ def main_menu():
     elif choice == "5":
         track_monthly_budget()
     elif choice == "6":
-        save_expenses(filename, expenses)
+        save_expenses(expenses_filename, expenses)
+        save_budgets(budgets_filename, monthly_budgets)
         print("Your data is saved and this program will exit now.")
         exit()
     else:
