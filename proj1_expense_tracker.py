@@ -160,8 +160,8 @@ def track_monthly_budget():
 
 # Set filenames using today's date
 today = datetime.datetime.now().strftime("%Y-%m-%d")
-expenses_filename = f"testexpenses.csv"
-budgets_filename = f"testbudgets.csv"
+expenses_filename = "testexpenses.csv"
+budgets_filename = "testbudgets.csv"
 
 def save_expenses(filename, expenses):
     fieldnames = ["date", "category", "amount", "description"]
@@ -204,6 +204,21 @@ def load_budgets(filename):
             loaded_budgets[row["category"]] = float(row["budget"])
     print(f"Budgets loaded from {filename}")
     return loaded_budgets
+
+# --- Load saved data if available ---
+if os.path.exists(expenses_filename):
+    expenses = load_expenses(expenses_filename)
+    print("DEBUG: expenses after load:", expenses)
+else:
+    print(f"There are no saved expenses found in {expenses_filename}. Please choose from main menu to add expenses")
+if os.path.exists(budgets_filename):
+    monthly_budgets = load_budgets(budgets_filename)
+    print("DEBUG: monthly_budgets after load:", monthly_budgets)
+else:
+    print(f"There are no saved budgets found in {budgets_filename}. Please set budgets in the main menu.")
+
+
+
 #main menu
 def main_menu():
 
