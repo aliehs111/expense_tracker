@@ -1,10 +1,11 @@
 import datetime
 import csv
 import os
-print("Current working directory:", os.getcwd())
+print("Current working directory:", os.getcwd()) #to verify where my script is running
 
 expenses = []
 categories = ("housing", "household", "utilities", "food", "medical", "entertainment", "investment", "education", "pets", "car", "car maintenance", "gas")
+categories_list = list(categories)# for when user adds a category
 monthly_budgets = {}
 #check if date is correct format
 def valid_date(date_str):
@@ -17,8 +18,8 @@ def valid_date(date_str):
 #enter an expense
 
 def add_expense(date, category, amount, description):
-   if category not in categories:
-      print("Invalid Category.  Please choose from these categories:", categories)
+   if category not in categories_list:
+      print("Invalid Category.  Please choose from these categories:", categories_list)
       return
    #if date is not correct format
    if not valid_date(date):
@@ -37,21 +38,6 @@ def add_expense(date, category, amount, description):
    expenses.append(expense)
    print("Expense added to tracker")
 
-# test valid and invalid entries
-# add_expense("2025-03-06", "food", 15.78, "pizza")
-# print(expenses)
-
-# add_expense("2025-03-06", "plant", 14.36, "pothos")
-# print(expenses)
-
-# add_expense("03-05-25", "car maintenance", 500.25, "tires")
-# print(expenses)
-
-# add_expense("2025-03-03", "utilities", 700.00, "electric bill")
-# print(expenses)
-
-
-
 # view expenses function
 def view_expenses():
   if not expenses:
@@ -66,18 +52,16 @@ def view_expenses():
       print("Description", expense["description"])
       print("-" * 30)
 
-#call function
-# view_expenses()
+# budget management-------------------------------------------
 
-# budget management (create budget function)
-
-
+#defining the set_monthly_budget function
 def set_monthly_budget(category, amount):
-   if category not in categories:
-      print("Invalid Category.  Please choose from these categories:", categories)
-      return
-   monthly_budgets[category] = amount
-   print(f"Monthly budget for {category} has been set to {amount}")
+    # Validate using the mutable list of categories
+    if category not in categories_list:
+        print("Invalid Category. Please choose from these categories:", categories_list)
+        return
+    monthly_budgets[category] = amount
+    print(f"Monthly budget for {category} has been set to {amount}")
 
 
 def modify_monthly_budget(category, new_amount):
@@ -102,15 +86,58 @@ def prompt_add_expense():
    
 
 
-def prompt_set_monthly_budget():
-    category = input("Please enter category: ")
-    try:
-       amount = float(input("Enter budget amount: "))
-    except ValueError:
-       print("Invalid amount.  Please enter numeric value and no special characters")
-       return
-    monthly_budget = {category: amount}
-    set_monthly_budget(category, amount)
+def prompt_set_monthly_budget_loop():
+    global categories_list  # Declare global to update it
+    while True:
+        print("\nSet Your Monthly Budget")
+        print("Select a category to set the budget:")
+        for idx, cat in enumerate(categories_list, start=1):
+            print(f"{idx}. {cat}")
+        print(f"{len(categories_list) + 1}. Add new category")
+        print(f"{len(categories_list) + 2}. Done")
+        
+        choice = input("Enter your choice (number): ").strip()
+        try:
+            choice = int(choice)
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+            continue
+
+        if 1 <= choice <= len(categories_list):
+            selected_category = categories_list[choice - 1]
+        elif choice == len(categories_list) + 1:
+            selected_category = input("Enter the new category name: ").strip()
+            if selected_category == "":
+                print("No category entered. Please try again.")
+                continue
+            # Check if it already exists, and if not, add it.
+            if selected_category not in categories_list:
+                categories_list.append(selected_category)
+                print(f"New category '{selected_category}' added.")
+            else:
+                print(f"Category '{selected_category}' already exists.")
+        elif choice == len(categories_list) + 2:
+            print("Finished setting budgets.")
+            break
+        else:
+            print("Invalid selection. Please try again.")
+            continue
+
+        try:
+            amount = float(input(f"Enter budget amount for '{selected_category}': ").strip())
+        except ValueError:
+            print("Invalid amount. Please enter a numeric value.")
+            continue
+
+        set_monthly_budget(selected_category, amount)
+        print("\nUpdated Budgets:")
+        view_monthly_budget()
+
+        cont = input("\nWould you like to set another budget? (y/n): ").strip().lower()
+        if cont != "y":
+            break
+
+
 
 
 def view_monthly_budget():
@@ -149,11 +176,11 @@ def track_monthly_budget():
         if budget > 0:
             difference = budget - amount_spent
             if difference < 0:
-                status = f"Exceeded by ${abs(difference):.2f}"
+                status = f"***Exceeded by ${abs(difference):.2f}***"
             else:
                 status = f"Remaining: ${difference:.2f}"
         else:
-            status = "No budget set"
+            status = "**No budget set**"
         print(f"{category:<20}{amount_spent:<15.2f}{budget:<15.2f}{percentage:<15.2f}{status:<30}")
 
 # --------- Expense Saving and Loading Functions ---------
@@ -217,6 +244,15 @@ if os.path.exists(budgets_filename):
 else:
     print(f"There are no saved budgets found in {budgets_filename}. Please set budgets in the main menu.")
 
+if os.path.exists(budgets_filename):
+    monthly_budgets = load_budgets(budgets_filename)
+    print("DEBUG: monthly_budgets after load:", monthly_budgets)
+    # Update categories_list with any categories from the loaded budgets
+    for cat in monthly_budgets.keys():
+        if cat not in categories_list:
+            categories_list.append(cat)
+else:
+    print(f"There are no saved budgets found in {budgets_filename}. Please set budgets in the main menu.")
 
 
 #main menu
@@ -237,7 +273,7 @@ def main_menu():
     elif choice == "2":
         view_expenses()
     elif choice == "3":
-        prompt_set_monthly_budget()
+        prompt_set_monthly_budget_loop()
     elif choice == "4":
         view_monthly_budget()
     elif choice == "5":
@@ -250,6 +286,6 @@ def main_menu():
     else:
         print("Invalid Selection. Please choose from numbers 1-6.")
 
-
+# assure that the fuction with "main" in the name will be the first to execute
 if __name__=="__main__":
    main_menu()
