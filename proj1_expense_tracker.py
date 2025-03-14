@@ -25,7 +25,7 @@ def add_expense(date, category, amount, description):
    if not valid_date(date):
        print("Invalid Date Format.  Please enter as YYYY-MM-DD")
        return
-   #create an expense dictionary once the user input is validated
+   #define an expense dictionary once the user input is validated
    expense = {
        "date": date,
        "category": category,
@@ -34,7 +34,6 @@ def add_expense(date, category, amount, description):
    }
 
    #add this expense to the current expense list
-
    expenses.append(expense)
    print("Expense added to tracker")
 
@@ -56,21 +55,21 @@ def view_expenses():
 
 #defining the set_monthly_budget function
 def set_monthly_budget(category, amount):
-    # Validate using the mutable list of categories
+    # Check against the categories_list (not the original categories list) in case a user has added categories
     if category not in categories_list:
         print("Invalid Category. Please choose from these categories:", categories_list)
         return
     monthly_budgets[category] = amount
     print(f"Monthly budget for {category} has been set to {amount}")
 
-
+#defining modify_monthly_budget function
 def modify_monthly_budget(category, new_amount):
     global monthly_budgets
     if category in monthly_budgets:
         monthly_budgets[category] = new_amount
         print(f"Budget for {category} modified to {new_amount}.")
     else:
-      print("Category not found in monthly budgets.  Please choose from {category}")
+      print("Category '{category}' not found in monthly budgets.  Please choose from {list(monthly_budgets.keys())}")
 
  #prompt functions to work from main menu - use these for user input then go to actual function to do input verification and to populate the dictionaries with input.
 def prompt_add_expense():
@@ -137,13 +136,45 @@ def prompt_set_monthly_budget_loop():
         if cont != "y":
             break
 
+def prompt_modify_monthly_budget():
+    if not monthly_budgets:
+        print("No budgets have been set yet.")
+        return
 
+    # Create a list of the current budget categories
+    budget_categories = list(monthly_budgets.keys())
+    print("Current Budgets:")
+    for idx, cat in enumerate(budget_categories, start=1):
+        print(f"{idx}. {cat} : {monthly_budgets[cat]}")
+
+    # Prompt the user to choose a category by number
+    try:
+        choice = int(input("Enter the number of the category you want to modify: ").strip())
+        if choice < 1 or choice > len(budget_categories):
+            print("Invalid selection. Please enter a valid number.")
+            return
+    except ValueError:
+        print("Invalid input. Please enter a number.")
+        return
+
+    selected_category = budget_categories[choice - 1]
+
+    # Prompt for the new budget amount
+    try:
+        new_amount = float(input(f"Enter the new budget amount for '{selected_category}': ").strip())
+    except ValueError:
+        print("Invalid amount. Please enter a numeric value.")
+        return
+
+    # Call the modify function
+    modify_monthly_budget(selected_category, new_amount)
 
 
 def view_monthly_budget():
-   print("Category\tAmount")
-   for category, amount in monthly_budgets.items():
-       print(f"{category}\t{amount}")
+    print(f"{'Category':<20}{'Amount':>10}")
+    for category, amount in monthly_budgets.items():
+        print(f"{category:<20}{amount:>10.2f}")
+
 
 import datetime
 
@@ -264,8 +295,9 @@ def main_menu():
     print("2. View Expenses")
     print("3. Create Monthly Budget")
     print("4. View Monthly Budget")
-    print("5. Track Monthly Budget")
-    print("6. Exit")
+    print("5. Modify Monthly Budget")
+    print("6. Track Monthly Budget")
+    print("7. Exit")
     choice = input("Please input the number of the menu option: ").strip().lower()
 
     if choice == "1":
@@ -276,9 +308,11 @@ def main_menu():
         prompt_set_monthly_budget_loop()
     elif choice == "4":
         view_monthly_budget()
-    elif choice == "5":
-        track_monthly_budget()
+    elif choice == '5':
+        prompt_modify_monthly_budget()  
     elif choice == "6":
+        track_monthly_budget()
+    elif choice == "7":
         save_expenses(expenses_filename, expenses)
         save_budgets(budgets_filename, monthly_budgets)
         print("Your data is saved and this program will exit now.")
